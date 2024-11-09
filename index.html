@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>定時聲音提示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>聲音提示</h1>
+    <button id="toggleButton">Start</button>
+    <audio id="alertSound" src="./1.wav" preload="auto"></audio>
+
+    <script>
+        const alertSound = document.getElementById("alertSound");
+        const toggleButton = document.getElementById("toggleButton");
+
+        let isRunning = false; // 初始狀態為停止
+        let intervalId; // 儲存計時器的ID
+
+        // 定義播放聲音的函數
+        function playSound() {
+            if (isRunning) {
+                alertSound.play();
+                
+                // 暫停檢查 70 秒
+                clearInterval(intervalId); // 清除目前的計時器
+                setTimeout(() => {
+                    intervalId = setInterval(checkTime, 5000); // 70 秒後恢復每 3 秒檢查
+                }, 70000);
+            }
+        }
+
+        // 定義切換狀態的函數
+        function toggleAlert() {
+            isRunning = !isRunning;
+            toggleButton.textContent = isRunning ? "Stop" : "Start";
+
+            // 如果是首次啟動，嘗試播放聲音以觸發互動授權
+            if (isRunning) {
+                alertSound.play().catch(error => {
+                    console.log("自動播放被阻止，等待用戶互動：", error);
+                });
+            }
+        }
+
+        // 設定按鈕點擊事件
+        toggleButton.addEventListener("click", toggleAlert);
+
+        // 設定檢查時間的函數
+        function checkTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+
+            // 確認時間在 21:00 到隔天 5:00 之間，且分鐘數符合每隔 5 分鐘的條件
+            if ((hours >= 21 || hours < 5) && (minutes % 5 === 4)) {
+                playSound();
+            }
+        }
+
+        // 每3秒檢查一次時間
+        intervalId = setInterval(checkTime, 5000);
+    </script>
+</body>
+</html>
